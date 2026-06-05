@@ -129,6 +129,39 @@ class TestComputeSimilarity(unittest.TestCase):
         self.assertAlmostEqual(scores["aggregate"], 1.0)
 
 
+class TestOopDesign(unittest.TestCase):
+    def test_polymorphic_metrics_share_interface(self):
+        left = lc.AnalysisFeatures.from_tree(parse_source("def f():\n    pass\n"))
+        right = lc.AnalysisFeatures.from_tree(parse_source("def g():\n    pass\n"))
+        for metric in lc.DEFAULT_METRICS:
+            score = metric.compute(left, right)
+            self.assertGreaterEqual(score, 0.0)
+            self.assertLessEqual(score, 1.0)
+
+    def test_license_checker_facade_runs_comparison(self):
+        checker = lc.LicenseChecker(threshold=0.75)
+        scores = checker.run(
+            str(PROJECT_ROOT / "original.py"),
+            str(PROJECT_ROOT / "suspect.py"),
+            render=False,
+        )
+        self.assertGreaterEqual(scores["aggregate"], 0.75)
+        self.assertTrue(checker.exceeds_threshold(scores))
+
+
+class TestExceptionHandling(unittest.TestCase):
+    def test_load_ast_raises_for_missing_file(self):
+        with self.assertRaises(lc.SourceFileNotFoundError):
+            lc.load_ast("this_file_does_not_exist.py")
+
+    def test_load_ast_raises_for_syntax_error(self):
+        bad_file = FIXTURES / "syntax_error.py"
+        bad_file.write_text("def broken(\n", encoding="utf-8")
+        self.addCleanup(lambda: bad_file.unlink(missing_ok=True))
+        with self.assertRaises(lc.SourceSyntaxError):
+            lc.load_ast(str(bad_file))
+
+
 class TestReportHelpers(unittest.TestCase):
     def test_bar_renders_full_and_empty(self):
         self.assertIn("█", lc.bar(1.0))
