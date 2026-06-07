@@ -161,6 +161,13 @@ class TestExceptionHandling(unittest.TestCase):
         with self.assertRaises(lc.SourceSyntaxError):
             lc.load_ast(str(bad_file))
 
+    def test_load_ast_raises_for_invalid_extension(self):
+        bad_file = FIXTURES / "wrong_extension.txt"
+        bad_file.write_text("print('hello')\n", encoding="utf-8")
+        self.addCleanup(lambda: bad_file.unlink(missing_ok=True))
+        with self.assertRaises(lc.SourceInvalidExtensionError):
+            lc.load_ast(str(bad_file))
+
 
 class TestReportHelpers(unittest.TestCase):
     def test_bar_renders_full_and_empty(self):
