@@ -531,6 +531,9 @@ def print_report(
 # ──────────────────────────────────────────────
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     parser = argparse.ArgumentParser(
         description="AST-based Python source similarity / licence checker."
     )
