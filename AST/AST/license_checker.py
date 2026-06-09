@@ -33,6 +33,10 @@ class SourceFileNotFoundError(LicenseCheckerError):
     """Raised when a source file path does not exist."""
 
 
+class SourceInvalidExtensionError(LicenseCheckerError):
+    """Raised when a source file does not use the .py extension."""
+
+
 class SourceSyntaxError(LicenseCheckerError):
     """Raised when a source file contains invalid Python syntax."""
 
@@ -50,8 +54,8 @@ class AstAnalyzer:
         if not path.exists():
             raise SourceFileNotFoundError(f"File not found: {filepath}")
         if path.suffix != ".py":
-            print(
-                f"[WARNING] {filepath} does not have a .py extension — proceeding anyway."
+            raise SourceInvalidExtensionError(
+                f"Unsupported file extension for {filepath}: expected .py"
             )
         try:
             source = path.read_text(encoding="utf-8")
