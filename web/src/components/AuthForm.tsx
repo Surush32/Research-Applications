@@ -67,26 +67,26 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <div className="mx-auto w-full max-w-md">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <Link href="/" className="font-serif-display text-2xl">
+          Lineage
+        </Link>
+        <h1 className="mt-6 font-serif-display text-3xl tracking-tight">
           {isSignup ? "Create your account" : "Welcome back"}
         </h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-muted">
           {isSignup
-            ? "Sign up to save comparisons and manage your profile."
-            : "Log in to access your dashboard and profile."}
+            ? "Sign up to save scans and manage your profile."
+            : "Log in to access your dashboard."}
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+        className="lineage-card space-y-4 p-6"
       >
         {isSignup && (
           <div>
-            <label
-              htmlFor="fullName"
-              className="mb-1.5 block text-sm font-medium"
-            >
+            <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium">
               Full name
             </label>
             <input
@@ -95,7 +95,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
               placeholder="Jane Doe"
             />
           </div>
@@ -112,16 +112,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             placeholder="you@example.com"
           />
         </div>
 
         <div>
-          <label
-            htmlFor="password"
-            className="mb-1.5 block text-sm font-medium"
-          >
+          <label htmlFor="password" className="mb-1.5 block text-sm font-medium">
             Password
           </label>
           <input
@@ -132,19 +129,19 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             required
             minLength={6}
             autoComplete={isSignup ? "new-password" : "current-password"}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             placeholder="••••••••"
           />
         </div>
 
         {error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         )}
 
         {message && (
-          <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+          <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
             {message}
           </p>
         )}
@@ -152,17 +149,17 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-zinc-900 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="lineage-btn-dark w-full py-2.5 text-sm disabled:opacity-50"
         >
           {loading ? "Please wait…" : isSignup ? "Create account" : "Log in"}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-6 text-center text-sm text-muted">
         {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
         <Link
           href={isSignup ? "/login" : "/signup"}
-          className="font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-100"
+          className="font-medium text-foreground underline underline-offset-4"
         >
           {isSignup ? "Log in" : "Sign up"}
         </Link>

@@ -53,10 +53,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
-    >
+    <form onSubmit={handleSubmit} className="lineage-card space-y-5 p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="full_name" className="mb-1.5 block text-sm font-medium">
@@ -67,7 +64,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             type="text"
             value={form.full_name ?? ""}
             onChange={(e) => updateField("full_name", e.target.value)}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </div>
 
@@ -80,7 +77,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             type="text"
             value={form.username ?? ""}
             onChange={(e) => updateField("username", e.target.value)}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             placeholder="jane_doe"
           />
         </div>
@@ -95,17 +92,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           rows={4}
           value={form.bio ?? ""}
           onChange={(e) => updateField("bio", e.target.value)}
-          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
           placeholder="Tell us a little about yourself…"
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label
-            htmlFor="avatar_url"
-            className="mb-1.5 block text-sm font-medium"
-          >
+          <label htmlFor="avatar_url" className="mb-1.5 block text-sm font-medium">
             Avatar URL
           </label>
           <input
@@ -113,7 +107,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             type="url"
             value={form.avatar_url ?? ""}
             onChange={(e) => updateField("avatar_url", e.target.value)}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             placeholder="https://…"
           />
         </div>
@@ -127,25 +121,22 @@ export function ProfileForm({ profile }: { profile: Profile }) {
             type="url"
             value={form.website ?? ""}
             onChange={(e) => updateField("website", e.target.value)}
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             placeholder="https://…"
           />
         </div>
       </div>
 
-      <div className="rounded-md bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-        Email: <span className="font-medium">{profile.email}</span> (managed by
-        auth)
+      <div className="rounded-lg bg-background px-3 py-2 text-sm text-muted">
+        Email: <span className="font-medium text-foreground">{profile.email}</span>
       </div>
 
       {error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </p>
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
       {success && (
-        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
           {success}
         </p>
       )}
@@ -153,7 +144,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        className="lineage-btn-dark px-4 py-2.5 text-sm disabled:opacity-50"
       >
         {loading ? "Saving…" : "Save changes"}
       </button>

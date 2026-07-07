@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
 import { ProfileForm } from "@/components/ProfileForm";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
@@ -23,29 +24,31 @@ export default async function ProfilePage() {
   if (error || !profile) {
     return (
       <>
-        <Navbar email={user.email} />
-        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
+        <SiteHeader />
+        <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
           <p className="text-red-600">
             Could not load your profile. Make sure you ran the Supabase database
             migration.
           </p>
         </main>
+        <SiteFooter />
       </>
     );
   }
 
   return (
     <>
-      <Navbar email={user.email} />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight">Your profile</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Update your public information and personal details.
-          </p>
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
+        <h1 className="font-serif-display text-4xl tracking-tight">Your profile</h1>
+        <p className="mt-2 text-sm text-muted">
+          Update your public information and personal details.
+        </p>
+        <div className="mt-8">
+          <ProfileForm profile={profile as Profile} />
         </div>
-        <ProfileForm profile={profile as Profile} />
       </main>
+      <SiteFooter />
     </>
   );
 }

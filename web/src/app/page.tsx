@@ -1,57 +1,125 @@
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { HeroDemo } from "@/components/HeroDemo";
+import { LogoRow } from "@/components/LogoRow";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 
-export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const features = [
+  {
+    title: "Point it at your code",
+    description:
+      "Drop a .py file or zipped package. Lineage reads your source — no git access required.",
+  },
+  {
+    title: "Parse, don't grep",
+    description:
+      "AST-based import resolution finds real dependencies, not string matches in comments.",
+  },
+  {
+    title: "Read your obligations",
+    description:
+      "Each finding links to the license text and a plain-English summary of what it means.",
+  },
+];
 
+const darkFeatures = [
+  { title: "Real import graph", desc: "Follows `import` and `from … import` statements" },
+  { title: "Transitive depth", desc: "Traces dependencies up to 3 levels deep" },
+  { title: "Line-level evidence", desc: "Every finding points to the exact source line" },
+];
+
+export default function Home() {
   return (
     <>
-      <Navbar email={user?.email} />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-16">
-        <div className="max-w-2xl">
-          <p className="text-sm font-medium uppercase tracking-wide text-zinc-500">
-            Research Applications
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-            AST-based code similarity detection
-          </h1>
-          <p className="mt-4 text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Compare Python source files for structural similarity using abstract
-            syntax trees. Create an account to manage your profile and access
-            your dashboard.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="rounded-md bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-              >
-                Go to dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/signup"
-                  className="rounded-md bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                >
-                  Create account
+      <SiteHeader />
+      <main>
+        {/* Hero */}
+        <section className="mx-auto max-w-6xl px-6 pb-16 pt-14">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <h1 className="font-serif-display text-5xl leading-[1.1] tracking-tight sm:text-6xl">
+                Catch the{" "}
+                <em className="text-accent not-italic">copyleft</em>
+                <br />
+                before you ship.
+              </h1>
+              <p className="mt-5 max-w-md text-base leading-7 text-muted">
+                Scan your Python codebase for GPL, LGPL, and other copyleft
+                licenses — before they become a compliance problem.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link href="/check" className="lineage-btn-primary px-6 py-2.5 text-sm">
+                  Add GitHub check
                 </Link>
                 <Link
-                  href="/login"
-                  className="rounded-md border border-zinc-300 px-5 py-2.5 text-sm font-medium transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                  href="#docs"
+                  className="text-sm text-muted underline underline-offset-4 hover:text-foreground"
                 >
-                  Log in
+                  Read the docs
                 </Link>
-              </>
-            )}
+              </div>
+            </div>
+            <HeroDemo />
           </div>
-        </div>
+        </section>
+
+        {/* Social proof */}
+        <section className="border-y border-border py-10">
+          <div className="mx-auto max-w-6xl px-6">
+            <LogoRow />
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="mx-auto max-w-6xl px-6 py-20">
+          <h2 className="text-center font-serif-display text-3xl tracking-tight">
+            Three steps from source file to a license verdict
+          </h2>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {features.map((f) => (
+              <div key={f.title} className="lineage-card p-6">
+                <h3 className="font-medium">{f.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Dark block */}
+        <section id="how-it-works" className="bg-dark py-20 text-white">
+          <div className="mx-auto max-w-6xl px-6">
+            <h2 className="font-serif-display text-3xl tracking-tight">
+              How Lineage finds what grep misses
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/60">
+              Most tools search for license strings in file names. Lineage parses
+              your Python AST, resolves imports, and checks each dependency against
+              a curated license database.
+            </p>
+            <div className="mt-10 grid gap-6 md:grid-cols-3">
+              {darkFeatures.map((f) => (
+                <div
+                  key={f.title}
+                  className="rounded-xl border border-white/10 bg-white/5 p-6"
+                >
+                  <h3 className="font-medium">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-white/60">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="docs" className="border-t border-border py-16">
+          <div className="mx-auto max-w-6xl px-6 text-center">
+            <h2 className="font-serif-display text-2xl tracking-tight">Documentation</h2>
+            <p className="mt-3 text-sm text-muted">
+              See the project README for CLI usage and AST similarity details.
+            </p>
+          </div>
+        </section>
       </main>
+      <SiteFooter />
     </>
   );
 }
