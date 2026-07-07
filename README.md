@@ -28,6 +28,8 @@ This project implements an AST-based Python source similarity and licence checke
 - `AST/AST/suspect.py` — example/suspect source file for comparison
 - `AST/AST/tests/` — unit tests for the checker
 - `AST/AST/tests/fixtures/` — fixture files used by tests
+- `web/` — Next.js web app with user login, signup, and profile management
+- `supabase/` — database migrations and setup guide for Supabase
 
 ## Requirements
 
@@ -51,6 +53,23 @@ Enter path to second file: suspect.py
 ```
 
 If the files are strongly similar, the checker prints a warning or critical result and exits with a non-zero status.
+
+## Web app (user accounts)
+
+The `web/` directory contains a Next.js app with Supabase authentication:
+
+- **Sign up** and **log in** with email/password
+- **Dashboard** for authenticated users
+- **Profile editing** (name, username, bio, avatar, website)
+
+See [supabase/README.md](supabase/README.md) for database setup instructions.
+
+```bash
+cd web
+cp .env.local.example .env.local   # then add your Supabase keys
+npm install
+npm run dev
+```
 
 ## Testing
 
