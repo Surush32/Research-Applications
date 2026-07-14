@@ -27,7 +27,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     const supabase = createClient();
 
     if (isSignup) {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -42,8 +42,16 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         return;
       }
 
+      // If email confirmation is off, Supabase returns a session immediately
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+        setLoading(false);
+        return;
+      }
+
       setMessage(
-        "Account created! Check your email to confirm your address, then log in."
+        "Account created! Check your email and click the confirmation link in the same browser you used to sign up, then log in."
       );
       setLoading(false);
       return;
@@ -55,7 +63,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     });
 
     if (signInError) {
-      setError(signInError.message);
+      if (signInError.message.toLowerCase().includes("email not confirmed")) {
+        setError(
+          "Please confirm your email first. Open the confirmation link in the same browser, or ask your admin to disable email confirmation for local testing."
+        );
+      } else {
+        setError(signInError.message);
+      }
       setLoading(false);
       return;
     }
