@@ -1,53 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import type { ComparisonResult } from "@/types/api";
 
-type Results = {
-  filesParsed: number;
-  importsResolved: number;
-  copyleftFound: number;
-  executionMs: number;
-  fileName: string;
-};
+function formatPct(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function readStoredResults(): ComparisonResult | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem("lineage-results");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as ComparisonResult;
+  } catch {
+    return null;
+  }
+}
 
 export function ResultsContent() {
-  const [results, setResults] = useState<Results | null>(null);
-  const [tab, setTab] = useState<"findings" | "broken" | "obligations">(
-    "findings"
-  );
+  const [results] = useState<ComparisonResult | null>(readStoredResults);
+  const [tab, setTab] = useState<"scores" | "recommendation">("scores");
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem("lineage-results");
-    if (raw) setResults(JSON.parse(raw));
-  }, []);
+  if (!results) {
+    return (
+      <p className="text-sm text-muted">
+        No results found.{" "}
+        <a href="/check" className="text-accent underline">
+          Run a comparison
+        </a>
+      </p>
+    );
+  }
 
-  const stats = results ?? {
-    filesParsed: 14,
-    importsResolved: 63,
-    copyleftFound: 1,
-    executionMs: 214,
-    fileName: "main.py",
-  };
+  const bannerClass = results.exceeds_threshold
+    ? "bg-accent"
+    : "bg-emerald-600";
+
+  const bannerText = results.exceeds_threshold
+    ? "High similarity detected"
+    : "No significant similarity";
 
   return (
     <>
-      <div className="flex items-center justify-between rounded-xl bg-accent px-6 py-4 text-white">
-        <p className="font-medium">Copyleft detected</p>
-        <button className="rounded-full border border-white/30 px-4 py-1.5 text-sm hover:bg-white/10">
-          Export reports
-        </button>
+      <div
+        className={`flex items-center justify-between rounded-xl px-6 py-4 text-white ${bannerClass}`}
+      >
+        <p className="font-medium">{bannerText}</p>
+        <span className="rounded-full border border-white/30 px-4 py-1.5 text-sm">
+          {results.recommendation}
+        </span>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "files parsed", value: stats.filesParsed },
-          { label: "imports resolved", value: stats.importsResolved },
-          {
-            label: "copyleft found",
-            value: stats.copyleftFound,
-            highlight: true,
-          },
-          { label: "total time", value: `${stats.executionMs}ms` },
+          { label: "aggregate score", value: formatPct(results.aggregate), highlight: results.exceeds_threshold },
+          { label: "cosine", value: formatPct(results.cosine) },
+          { label: "jaccard", value: formatPct(results.jaccard) },
+          { label: "analysis time", value: `${results.executionMs}ms` },
         ].map((s) => (
           <div key={s.label} className="lineage-card p-4 text-center">
             <p
@@ -62,12 +72,19 @@ export function ResultsContent() {
         ))}
       </div>
 
+      <div className="mt-4 lineage-card px-5 py-4 text-sm">
+        <span className="text-muted">Compared </span>
+        <span className="font-medium">{results.fileA}</span>
+        <span className="text-muted"> vs </span>
+        <span className="font-medium">{results.fileB}</span>
+        <span className="text-muted"> · threshold {results.threshold}</span>
+      </div>
+
       <div className="mt-8 border-b border-border">
         {(
           [
-            ["findings", "Findings"],
-            ["broken", "Broken links"],
-            ["obligations", "Obligations"],
+            ["scores", "Similarity scores"],
+            ["recommendation", "Recommendation"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -84,57 +101,52 @@ export function ResultsContent() {
         ))}
       </div>
 
-      {tab === "findings" && (
-        <div className="mt-6 space-y-4">
-          <div className="lineage-card p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-medium">fast_statistics</p>
-                <p className="mt-1 text-xs text-muted">
-                  {stats.fileName} → line 2
-                </p>
+      {tab === "scores" && (
+        <div className="mt-6 space-y-3">
+          {(
+            [
+              ["Aggregate", results.aggregate],
+              ["Cosine", results.cosine],
+              ["Jaccard", results.jaccard],
+              ["LCS overlap", results.lcs],
+              ["Signature overlap", results.signature],
+            ] as const
+          ).map(([label, value]) => (
+            <div key={label} className="lineage-card p-4">
+              <div className="mb-2 flex justify-between text-sm">
+                <span>{label}</span>
+                <span className="font-medium">{formatPct(value)}</span>
               </div>
-              <span className="rounded-full bg-[#fff4f0] px-3 py-1 text-xs font-medium text-accent">
-                GPL-3.0
-              </span>
-            </div>
-
-            <div className="mt-6 flex flex-col items-center gap-2 py-2">
-              <div className="rounded-md border border-border bg-background px-4 py-2 text-xs">
-                {stats.fileName}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <span>import</span>
-                <div className="h-px w-8 bg-border" />
-              </div>
-              <div className="rounded-md border border-border bg-background px-4 py-2 text-xs">
-                fast_statistics
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <span>depends on</span>
-                <div className="h-px w-8 bg-border" />
-              </div>
-              <div className="rounded-md border border-accent bg-[#fff4f0] px-4 py-2 text-xs text-accent">
-                GPL-3.0
+              <div className="h-2 overflow-hidden rounded-full bg-background">
+                <div
+                  className={`h-full rounded-full ${
+                    value >= results.threshold ? "bg-accent" : "bg-emerald-500"
+                  }`}
+                  style={{ width: `${value * 100}%` }}
+                />
               </div>
             </div>
-          </div>
+          ))}
         </div>
       )}
 
-      {tab === "broken" && (
-        <p className="mt-6 text-sm text-muted">No broken import links found.</p>
-      )}
-
-      {tab === "obligations" && (
+      {tab === "recommendation" && (
         <div className="lineage-card mt-6 p-6">
-          <h3 className="font-medium">What GPL-3.0 asks of you</h3>
-          <ul className="mt-4 space-y-2 text-sm leading-6 text-muted">
-            <li>• Disclose source code when distributing the software</li>
-            <li>• License derivative works under GPL-3.0</li>
-            <li>• Include copyright and license notices</li>
-            <li>• Document changes made to the original code</li>
-          </ul>
+          <h3 className="font-medium">Analysis verdict</h3>
+          <p className="mt-4 text-sm leading-6 text-muted">
+            {results.recommendation}
+          </p>
+          {results.exceeds_threshold ? (
+            <p className="mt-4 text-sm text-accent">
+              The aggregate similarity score exceeds the configured threshold of{" "}
+              {results.threshold}. Manual review is recommended.
+            </p>
+          ) : (
+            <p className="mt-4 text-sm text-emerald-700">
+              The files appear to be independently authored based on structural
+              AST analysis.
+            </p>
+          )}
         </div>
       )}
     </>

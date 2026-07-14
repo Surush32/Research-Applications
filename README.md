@@ -30,6 +30,7 @@ This project implements an AST-based Python source similarity and licence checke
 - `AST/AST/tests/fixtures/` — fixture files used by tests
 - `web/` — Next.js web app with user login, signup, and profile management
 - `supabase/` — database migrations and setup guide for Supabase
+- `scripts/` — Part E shell scripts for test automation and batch comparisons
 
 ## Requirements
 
@@ -70,6 +71,23 @@ cp .env.local.example .env.local   # then add your Supabase keys
 npm install
 npm run dev
 ```
+
+## Shell scripts (Part E)
+
+Automated development tasks live in `scripts/`:
+
+```bash
+# Run all Python unit tests with filtered summary
+bash scripts/run-tests.sh
+
+# Batch-compare sample file pairs and export results
+bash scripts/batch-compare.sh 0.75 report.csv
+
+# Verify Render-deployed API is healthy
+bash scripts/check-api.sh
+```
+
+See [scripts/README.md](scripts/README.md) for full documentation.
 
 ## Testing
 

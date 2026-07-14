@@ -23,9 +23,8 @@ export default function CheckPage() {
           Check your code
         </h1>
         <p className="mt-2 max-w-xl text-sm text-muted">
-          Give Lineage something to parse. It compiles every file to its
-          syntax tree, walks the imports, and resolves each one to a license
-          — nothing is uploaded to a server.
+          Upload two Python files to compare structural similarity. Results are
+          computed by the AST Similarity API.
         </p>
 
         <div className="mt-10">

@@ -1,0 +1,4 @@
+# Shell script run artifacts
+.last-test-run.log
+.last-compare-report.txt
+.last-api-check.log

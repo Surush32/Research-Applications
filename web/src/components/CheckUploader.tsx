@@ -2,38 +2,41 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { compareFiles } from "@/lib/api";
 
 const SAMPLE_CODE = `import pandas as pd
 from fast_statistics import mean
 
 def analyze(data):
-    return mean(data)
-
-class Report:
-    def __init__(self, title):
-        self.title = title
-
-    def render(self):
-        return f"Report: {self.title}"`;
+    return mean(data)`;
 
 export function CheckUploader() {
   const router = useRouter();
-  const [files, setFiles] = useState<File[]>([]);
+  const [fileA, setFileA] = useState<File | null>(null);
+  const [fileB, setFileB] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [followTransitive, setFollowTransitive] = useState(true);
-  const [generateSarif, setGenerateSarif] = useState(false);
+  const [threshold, setThreshold] = useState(0.75);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const processFiles = useCallback(async (fileList: FileList | File[]) => {
     const pyFiles = Array.from(fileList).filter((f) =>
       f.name.endsWith(".py")
     );
-    if (pyFiles.length === 0) return;
+    if (pyFiles.length === 0) {
+      setError("Please upload .py files only.");
+      return;
+    }
 
-    setFiles(pyFiles);
-    const text = await pyFiles[0].text();
-    setPreview(text.slice(0, 600));
+    setError(null);
+    setFileA(pyFiles[0] ?? null);
+    setFileB(pyFiles[1] ?? null);
+
+    if (pyFiles[0]) {
+      const text = await pyFiles[0].text();
+      setPreview(text.slice(0, 600));
+    }
   }, []);
 
   function onDrop(e: React.DragEvent) {
@@ -47,23 +50,34 @@ export function CheckUploader() {
   }
 
   async function runAnalysis() {
+    if (!fileA || !fileB) {
+      setError("Select two Python files to compare.");
+      return;
+    }
+
+    setError(null);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
+    const start = performance.now();
 
-    sessionStorage.setItem(
-      "lineage-results",
-      JSON.stringify({
-        filesParsed: files.length || 14,
-        importsResolved: 63,
-        copyleftFound: 1,
-        executionMs: 214,
-        followTransitive,
-        generateSarif,
-        fileName: files[0]?.name ?? "main.py",
-      })
-    );
+    try {
+      const result = await compareFiles(fileA, fileB, threshold);
 
-    router.push("/check/results");
+      sessionStorage.setItem(
+        "lineage-results",
+        JSON.stringify({
+          ...result,
+          fileA: fileA.name,
+          fileB: fileB.name,
+          executionMs: Math.round(performance.now() - start),
+        })
+      );
+
+      router.push("/check/results");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Analysis failed.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -80,8 +94,10 @@ export function CheckUploader() {
             dragging ? "lineage-dropzone-active" : ""
           }`}
         >
-          <p className="text-sm font-medium">Drop .py files here</p>
-          <p className="mt-1 text-xs text-muted">or click to browse</p>
+          <p className="text-sm font-medium">Drop two .py files here</p>
+          <p className="mt-1 text-xs text-muted">
+            First file = original, second = suspect
+          </p>
           <label className="mt-4 cursor-pointer text-xs text-accent underline underline-offset-2">
             Choose files
             <input
@@ -92,72 +108,72 @@ export function CheckUploader() {
               onChange={onFileInput}
             />
           </label>
-          {files.length > 0 && (
-            <p className="mt-3 text-xs text-muted">
-              {files.length} file{files.length > 1 ? "s" : ""} selected
-            </p>
+          {(fileA || fileB) && (
+            <div className="mt-3 space-y-1 text-xs text-muted">
+              {fileA && <p>File A: {fileA.name}</p>}
+              {fileB && <p>File B: {fileB.name}</p>}
+              {fileA && !fileB && (
+                <p className="text-accent">Add a second file to compare</p>
+              )}
+            </div>
           )}
         </div>
 
         <div className="lineage-card mt-4 overflow-hidden">
           <div className="border-b border-border px-4 py-2">
             <span className="text-xs text-muted">
-              {files[0]?.name ?? "main.py"}
+              {fileA?.name ?? "original.py"}
             </span>
           </div>
           <pre className="max-h-48 overflow-auto p-4 font-mono text-[11px] leading-5 text-foreground/85">
             <code>{preview ?? SAMPLE_CODE}</code>
           </pre>
         </div>
+
+        {error && (
+          <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
       </div>
 
       <aside className="space-y-6">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-muted">
-            Scan settings
+            Similarity threshold
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {["Python 3.10", "Python 3.11", "Python 3.12"].map((v, i) => (
-              <span
-                key={v}
-                className={`rounded-full border px-3 py-1 text-xs ${
-                  i === 1
-                    ? "border-accent bg-[#fff4f0] text-accent"
-                    : "border-border text-muted"
-                }`}
-              >
-                {v}
-              </span>
-            ))}
+          <div className="mt-3">
+            <input
+              type="range"
+              min={0.5}
+              max={1}
+              step={0.05}
+              value={threshold}
+              onChange={(e) => setThreshold(Number(e.target.value))}
+              className="w-full accent-accent"
+            />
+            <p className="mt-1 text-sm font-medium">{threshold.toFixed(2)}</p>
+            <p className="text-xs text-muted">
+              Scores above this trigger a warning
+            </p>
           </div>
         </div>
 
-        <label className="flex cursor-pointer items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={followTransitive}
-            onChange={(e) => setFollowTransitive(e.target.checked)}
-            className="accent-accent"
-          />
-          Follow transitive imports
-        </label>
-
-        <label className="flex cursor-pointer items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={generateSarif}
-            onChange={(e) => setGenerateSarif(e.target.checked)}
-            className="accent-accent"
-          />
-          Generate SARIF report
-        </label>
+        <div className="rounded-lg border border-border bg-card p-4 text-xs text-muted">
+          <p className="font-medium text-foreground">Connected API</p>
+          <p className="mt-1 break-all">
+            catching-the-copy-bo.onrender.com
+          </p>
+        </div>
 
         <div className="flex items-center gap-4 pt-2">
           <button
             type="button"
             onClick={() => {
-              setFiles([]);
+              setFileA(null);
+              setFileB(null);
               setPreview(null);
+              setError(null);
             }}
             className="text-sm text-muted hover:text-foreground"
           >
@@ -166,7 +182,7 @@ export function CheckUploader() {
           <button
             type="button"
             onClick={runAnalysis}
-            disabled={loading}
+            disabled={loading || !fileA || !fileB}
             className="lineage-btn-primary flex-1 px-4 py-2.5 text-sm disabled:opacity-50"
           >
             {loading ? "Analyzing…" : "Run analysis"}
