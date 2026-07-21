@@ -1,8 +1,15 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
 import { RemediationPanel } from "@/components/RemediationPanel";
 import { buildRemediationGuide } from "@/lib/guidance";
+import {
+  buildComparisonReport,
+  downloadJsonReport,
+  downloadTextReport,
+  reportFilename,
+} from "@/lib/report";
 import type { ComparisonResult } from "@/types/api";
 
 function formatPct(value: number) {
@@ -70,12 +77,29 @@ export function ResultsContent() {
   return (
     <>
       <div
-        className={`flex items-center justify-between rounded-xl px-6 py-4 text-white ${bannerClass}`}
+        className={`flex flex-col gap-3 rounded-xl px-6 py-4 text-white sm:flex-row sm:items-center sm:justify-between ${bannerClass}`}
       >
         <p className="font-medium">{bannerText}</p>
-        <span className="rounded-full border border-white/30 px-4 py-1.5 text-sm">
+        <span className="w-fit rounded-full border border-white/30 px-4 py-1.5 text-sm">
           {results.recommendation}
         </span>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted">
+          Save a shareable summary for your instructor or team.
+        </p>
+        <DownloadReportButton
+          onDownloadMarkdown={() =>
+            downloadTextReport(
+              reportFilename("comparison", "md"),
+              buildComparisonReport(results)
+            )
+          }
+          onDownloadJson={() =>
+            downloadJsonReport(reportFilename("comparison", "json"), results)
+          }
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">

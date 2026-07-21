@@ -1,8 +1,15 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
 import { RemediationPanel } from "@/components/RemediationPanel";
 import { buildRemediationGuide } from "@/lib/guidance";
+import {
+  buildCorpusScanReport,
+  downloadJsonReport,
+  downloadTextReport,
+  reportFilename,
+} from "@/lib/report";
 import type { CorpusScanResult } from "@/types/api";
 
 function formatPct(value: number) {
@@ -87,9 +94,26 @@ export function ScanResultsContent() {
             {results.repo ? ` from ${results.repo}` : ""}.
           </p>
         </div>
-        <span className="rounded-full border border-white/30 px-4 py-1.5 text-sm">
+        <span className="w-fit rounded-full border border-white/30 px-4 py-1.5 text-sm">
           {results.summary.flaggedFiles} flagged · {results.executionMs}ms
         </span>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted">
+          Download a report of these scanned files for class or team review.
+        </p>
+        <DownloadReportButton
+          onDownloadMarkdown={() =>
+            downloadTextReport(
+              reportFilename("corpus-scan", "md"),
+              buildCorpusScanReport(results)
+            )
+          }
+          onDownloadJson={() =>
+            downloadJsonReport(reportFilename("corpus-scan", "json"), results)
+          }
+        />
       </div>
 
       <RemediationPanel

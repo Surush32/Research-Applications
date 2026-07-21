@@ -48,6 +48,15 @@ const sections = [
     ],
   },
   {
+    id: "download-report",
+    title: "Download a report",
+    body: [
+      "On comparison or corpus-scan results, use “Download report” for a Markdown summary, or “Download JSON” for the raw scores.",
+      "Share the Markdown file with an instructor or teammate when you need a written record of flagged files.",
+      "Reports stay on your device — Lineage does not upload them to a server.",
+    ],
+  },
+  {
     id: "contact",
     title: "Ask for help",
     body: [

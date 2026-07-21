@@ -1,10 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { SiteHeaderClient } from "./SiteHeaderClient";
 
-const navLinks = [
+const guestLinks = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#features", label: "Features" },
   { href: "/#docs", label: "Docs" },
+];
+
+const appLinks = [
+  { href: "/check", label: "Check" },
+  { href: "/github", label: "GitHub" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/help", label: "Help" },
 ];
 
 export async function SiteHeader() {
@@ -13,11 +20,13 @@ export async function SiteHeader() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const isLoggedIn = !!user;
+
   return (
     <SiteHeaderClient
-      navLinks={navLinks}
+      navLinks={isLoggedIn ? appLinks : guestLinks}
       email={user?.email ?? null}
-      isLoggedIn={!!user}
+      isLoggedIn={isLoggedIn}
     />
   );
 }
