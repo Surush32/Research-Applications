@@ -1,4 +1,8 @@
-import type { ComparisonResponse, HealthResponse } from "@/types/api";
+import type {
+  ComparisonResponse,
+  CorpusScanResult,
+  HealthResponse,
+} from "@/types/api";
 
 export async function checkApiHealth(): Promise<HealthResponse> {
   const res = await fetch("/api/health");
@@ -29,4 +33,25 @@ export async function compareFiles(
   }
 
   return res.json();
+}
+
+export async function scanAgainstCorpus(input: {
+  files: { path: string; name: string; content: string }[];
+  threshold?: number;
+  topK?: number;
+  repo?: string;
+  branch?: string;
+}): Promise<CorpusScanResult> {
+  const res = await fetch("/api/scan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(data?.error ?? `Corpus scan failed (${res.status})`);
+  }
+
+  return data as CorpusScanResult;
 }

@@ -1,26 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { RemediationPanel } from "@/components/RemediationPanel";
+import { buildRemediationGuide } from "@/lib/guidance";
 import type { ComparisonResult } from "@/types/api";
 
 function formatPct(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-function readStoredResults(): ComparisonResult | null {
-  if (typeof window === "undefined") return null;
-  const raw = sessionStorage.getItem("lineage-results");
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as ComparisonResult;
-  } catch {
-    return null;
-  }
+function subscribe() {
+  return () => {};
+}
+
+function getResultsSnapshot() {
+  return sessionStorage.getItem("lineage-results");
+}
+
+function getServerSnapshot() {
+  return null;
 }
 
 export function ResultsContent() {
-  const [results] = useState<ComparisonResult | null>(readStoredResults);
-  const [tab, setTab] = useState<"scores" | "recommendation">("scores");
+  const [tab, setTab] = useState<"scores" | "fix" | "recommendation">(
+    "scores"
+  );
+
+  const raw = useSyncExternalStore(
+    subscribe,
+    getResultsSnapshot,
+    getServerSnapshot
+  );
+
+  const results = useMemo(() => {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as ComparisonResult;
+    } catch {
+      return null;
+    }
+  }, [raw]);
 
   if (!results) {
     return (
@@ -41,6 +60,13 @@ export function ResultsContent() {
     ? "High similarity detected"
     : "No significant similarity";
 
+  const guide = buildRemediationGuide({
+    flagged: results.exceeds_threshold,
+    aggregate: results.aggregate,
+    threshold: results.threshold,
+    recommendation: results.recommendation,
+  });
+
   return (
     <>
       <div
@@ -54,7 +80,11 @@ export function ResultsContent() {
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "aggregate score", value: formatPct(results.aggregate), highlight: results.exceeds_threshold },
+          {
+            label: "aggregate score",
+            value: formatPct(results.aggregate),
+            highlight: results.exceeds_threshold,
+          },
           { label: "cosine", value: formatPct(results.cosine) },
           { label: "jaccard", value: formatPct(results.jaccard) },
           { label: "analysis time", value: `${results.executionMs}ms` },
@@ -84,6 +114,7 @@ export function ResultsContent() {
         {(
           [
             ["scores", "Similarity scores"],
+            ["fix", "How to fix"],
             ["recommendation", "Recommendation"],
           ] as const
         ).map(([key, label]) => (
@@ -127,6 +158,27 @@ export function ResultsContent() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === "fix" && (
+        <div className="mt-2">
+          <RemediationPanel
+            guide={guide}
+            explainRequest={{
+              suspectName: results.fileA,
+              corpusTitle: results.fileB,
+              recommendation: results.recommendation,
+              threshold: results.threshold,
+              scores: {
+                aggregate: results.aggregate,
+                cosine: results.cosine,
+                jaccard: results.jaccard,
+                lcs: results.lcs,
+                signature: results.signature,
+              },
+            }}
+          />
         </div>
       )}
 

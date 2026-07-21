@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { compareFiles } from "@/lib/api";
+import { compareFiles, scanAgainstCorpus } from "@/lib/api";
+import type { GitHubImportedFile } from "@/types/github";
 
 const SAMPLE_CODE = `import pandas as pd
 from fast_statistics import mean
@@ -12,13 +14,59 @@ def analyze(data):
 
 export function CheckUploader() {
   const router = useRouter();
-  const [fileA, setFileA] = useState<File | null>(null);
-  const [fileB, setFileB] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const importedGitHubFiles = useMemo(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const raw = sessionStorage.getItem("lineage-github-import");
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const payload = JSON.parse(raw) as {
+        repo: string;
+        branch: string;
+        files: GitHubImportedFile[];
+      };
+
+      return payload.files.length > 0 ? payload : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const [fileA, setFileA] = useState<File | null>(() => {
+    const first = importedGitHubFiles?.files[0];
+    return first
+      ? new File([first.content], first.name, { type: "text/x-python" })
+      : null;
+  });
+  const [fileB, setFileB] = useState<File | null>(() => {
+    const second = importedGitHubFiles?.files[1];
+    return second
+      ? new File([second.content], second.name, { type: "text/x-python" })
+      : null;
+  });
+  const [preview, setPreview] = useState<string | null>(() => {
+    return importedGitHubFiles?.files[0]?.content.slice(0, 600) ?? null;
+  });
   const [dragging, setDragging] = useState(false);
   const [threshold, setThreshold] = useState(0.75);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sourceNote, setSourceNote] = useState<string | null>(() =>
+    importedGitHubFiles
+      ? `Loaded from GitHub: ${importedGitHubFiles.repo} (${importedGitHubFiles.branch})`
+      : null
+  );
+
+  useEffect(() => {
+    if (importedGitHubFiles) {
+      sessionStorage.removeItem("lineage-github-import");
+    }
+  }, [importedGitHubFiles]);
 
   const processFiles = useCallback(async (fileList: FileList | File[]) => {
     const pyFiles = Array.from(fileList).filter((f) =>
@@ -30,6 +78,7 @@ export function CheckUploader() {
     }
 
     setError(null);
+    setSourceNote(null);
     setFileA(pyFiles[0] ?? null);
     setFileB(pyFiles[1] ?? null);
 
@@ -80,6 +129,38 @@ export function CheckUploader() {
     }
   }
 
+  async function runCorpusScan() {
+    if (!fileA) {
+      setError("Select at least one Python file to scan against the corpus.");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      const content = await fileA.text();
+      const result = await scanAgainstCorpus({
+        files: [
+          {
+            path: fileA.name,
+            name: fileA.name,
+            content,
+          },
+        ],
+        threshold,
+        topK: 3,
+      });
+
+      sessionStorage.setItem("lineage-scan-results", JSON.stringify(result));
+      router.push("/check/scan-results");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Corpus scan failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
       <div>
@@ -90,13 +171,13 @@ export function CheckUploader() {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`lineage-dropzone flex min-h-[220px] flex-col items-center justify-center px-6 py-12 text-center transition ${
+          className={`lineage-dropzone flex min-h-55 flex-col items-center justify-center px-6 py-12 text-center transition ${
             dragging ? "lineage-dropzone-active" : ""
           }`}
         >
-          <p className="text-sm font-medium">Drop two .py files here</p>
+          <p className="text-sm font-medium">Drop .py files here</p>
           <p className="mt-1 text-xs text-muted">
-            First file = original, second = suspect
+            One file for corpus scan, or two files for pairwise compare
           </p>
           <label className="mt-4 cursor-pointer text-xs text-accent underline underline-offset-2">
             Choose files
@@ -113,9 +194,14 @@ export function CheckUploader() {
               {fileA && <p>File A: {fileA.name}</p>}
               {fileB && <p>File B: {fileB.name}</p>}
               {fileA && !fileB && (
-                <p className="text-accent">Add a second file to compare</p>
+                <p className="text-accent">
+                  Ready for corpus scan — or add a second file to compare
+                </p>
               )}
             </div>
+          )}
+          {sourceNote && (
+            <p className="mt-3 text-xs text-muted">{sourceNote}</p>
           )}
         </div>
 
@@ -160,13 +246,29 @@ export function CheckUploader() {
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4 text-xs text-muted">
-          <p className="font-medium text-foreground">Connected API</p>
-          <p className="mt-1 break-all">
-            catching-the-copy-bo.onrender.com
+          <p className="font-medium text-foreground">Reference corpus</p>
+          <p className="mt-1">
+            Fingerprint shortlist + AST confirm against known Python samples.
           </p>
         </div>
 
-        <div className="flex items-center gap-4 pt-2">
+        <div className="flex flex-col gap-3 pt-2">
+          <button
+            type="button"
+            onClick={runCorpusScan}
+            disabled={loading || !fileA}
+            className="lineage-btn-primary w-full px-4 py-2.5 text-sm disabled:opacity-50"
+          >
+            {loading ? "Working…" : "Scan against corpus"}
+          </button>
+          <button
+            type="button"
+            onClick={runAnalysis}
+            disabled={loading || !fileA || !fileB}
+            className="lineage-btn-dark w-full px-4 py-2.5 text-sm disabled:opacity-50"
+          >
+            {loading ? "Working…" : "Compare two files"}
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -174,18 +276,11 @@ export function CheckUploader() {
               setFileB(null);
               setPreview(null);
               setError(null);
+              setSourceNote(null);
             }}
             className="text-sm text-muted hover:text-foreground"
           >
             Clear
-          </button>
-          <button
-            type="button"
-            onClick={runAnalysis}
-            disabled={loading || !fileA || !fileB}
-            className="lineage-btn-primary flex-1 px-4 py-2.5 text-sm disabled:opacity-50"
-          >
-            {loading ? "Analyzing…" : "Run analysis"}
           </button>
         </div>
       </aside>

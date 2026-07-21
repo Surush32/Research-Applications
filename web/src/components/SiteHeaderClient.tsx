@@ -61,7 +61,19 @@ export function SiteHeaderClient({
               >
                 Profile
               </Link>
-              <span className="hidden max-w-[140px] truncate text-xs text-muted lg:inline">
+              <Link
+                href="/github"
+                className="hidden text-sm text-muted hover:text-foreground sm:inline"
+              >
+                GitHub
+              </Link>
+              <Link
+                href="/help"
+                className="hidden text-sm text-muted hover:text-foreground sm:inline"
+              >
+                Help
+              </Link>
+              <span className="hidden max-w-35 truncate text-xs text-muted lg:inline">
                 {email}
               </span>
               <button

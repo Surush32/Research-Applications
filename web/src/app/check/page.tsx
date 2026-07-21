@@ -23,9 +23,23 @@ export default function CheckPage() {
           Check your code
         </h1>
         <p className="mt-2 max-w-xl text-sm text-muted">
-          Upload two Python files to compare structural similarity. Results are
-          computed by the AST Similarity API.
+          Compare two files pairwise, or upload one file and scan it against
+          the reference corpus for possible copyright matches.
         </p>
+
+        <div className="mt-4 rounded-lg border border-border bg-white/60 p-4 text-sm">
+          <p className="font-medium">Prefer GitHub?</p>
+          <p className="mt-1 text-muted">
+            Open GitHub import to select repo files and run a corpus scan
+            without downloading them locally.
+          </p>
+          <Link
+            href="/github"
+            className="mt-3 inline-flex text-sm font-medium text-accent underline underline-offset-4"
+          >
+            Open GitHub import
+          </Link>
+        </div>
 
         <div className="mt-10">
           <CheckUploader />

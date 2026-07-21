@@ -1,0 +1,50 @@
+[
+  {
+    "id": "user-analytics-pipeline",
+    "title": "User Analytics Pipeline",
+    "filename": "user_analytics_pipeline.py",
+    "license": "Proprietary (course reference)",
+    "source": "Lineage demo corpus / AST original.py",
+    "description": "CSV analytics pipeline with UserRecord and AnalyticsPipeline classes."
+  },
+  {
+    "id": "sorting-algorithms",
+    "title": "Sorting Algorithms",
+    "filename": "sorting_algorithms.py",
+    "license": "MIT-style educational sample",
+    "source": "Lineage demo corpus",
+    "description": "Bubble, merge, and quick sort reference implementations."
+  },
+  {
+    "id": "graph-traversal",
+    "title": "Graph Traversal",
+    "filename": "graph_traversal.py",
+    "license": "MIT-style educational sample",
+    "source": "Lineage demo corpus",
+    "description": "Graph adjacency list with BFS and DFS traversal."
+  },
+  {
+    "id": "http-cache-client",
+    "title": "HTTP Cache Client",
+    "filename": "http_cache_client.py",
+    "license": "Apache-2.0-style educational sample",
+    "source": "Lineage demo corpus",
+    "description": "TTL cache wrapper around an HTTP-style fetcher."
+  },
+  {
+    "id": "distinct-math-utils",
+    "title": "Math Utils",
+    "filename": "distinct_math_utils.py",
+    "license": "Public domain educational sample",
+    "source": "AST test fixtures",
+    "description": "Tiny unrelated math helper used as a negative-match sample."
+  },
+  {
+    "id": "distinct-text-tools",
+    "title": "Text Tools",
+    "filename": "distinct_text_tools.py",
+    "license": "Public domain educational sample",
+    "source": "AST test fixtures",
+    "description": "Tiny greeter class used as a negative-match sample."
+  }
+]

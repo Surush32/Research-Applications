@@ -6,6 +6,7 @@ const footerLinks = {
     { href: "/#features", label: "Features" },
   ],
   Support: [
+    { href: "/help", label: "Help & remediation" },
     { href: "/#docs", label: "Documentation" },
     { href: "/login", label: "Sign in" },
     { href: "/signup", label: "Create account" },

@@ -31,7 +31,7 @@ export default async function DashboardPage() {
           Your account dashboard. Run scans and manage your profile.
         </p>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/check"
             className="lineage-card p-6 transition hover:shadow-sm"
@@ -49,6 +49,17 @@ export default async function DashboardPage() {
             <h2 className="font-medium">Edit profile</h2>
             <p className="mt-2 text-sm text-muted">
               Update your name, username, bio, and links.
+            </p>
+          </Link>
+
+          <Link
+            href="/github"
+            className="lineage-card p-6 transition hover:shadow-sm"
+          >
+            <h2 className="font-medium">Import from GitHub</h2>
+            <p className="mt-2 text-sm text-muted">
+              Scan repo files against the reference corpus, or import two files
+              for pairwise compare.
             </p>
           </Link>
         </div>
