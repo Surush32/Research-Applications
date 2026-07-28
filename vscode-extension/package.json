@@ -2,7 +2,7 @@
   "name": "lineage-copy-check",
   "displayName": "Lineage Copy Check",
   "description": "AST-based structural similarity warnings for Python files (Catching the Copy).",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "surush32",
   "license": "MIT",
   "repository": {
@@ -26,7 +26,8 @@
     "ast",
     "similarity",
     "license",
-    "lineage"
+    "lineage",
+    "azure"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -42,6 +43,10 @@
       {
         "command": "lineage.compareWithClipboard",
         "title": "Lineage: Compare with Clipboard"
+      },
+      {
+        "command": "lineage.azureCheckActiveFile",
+        "title": "Lineage: Azure Protected Material Check"
       }
     ],
     "configuration": {
@@ -51,6 +56,21 @@
           "type": "string",
           "default": "https://catching-the-copy-bo.onrender.com",
           "description": "AST similarity API base URL (Render backend)."
+        },
+        "lineage.webAppUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Lineage web app URL used for Azure checks via /api/azure-check (recommended so keys stay on the server)."
+        },
+        "lineage.azureEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Optional direct Azure Content Safety endpoint if webAppUrl is empty."
+        },
+        "lineage.azureKey": {
+          "type": "string",
+          "default": "",
+          "description": "Optional direct Azure Content Safety key if webAppUrl is empty."
         },
         "lineage.threshold": {
           "type": "number",
@@ -77,6 +97,11 @@
           "when": "resourceLangId == python",
           "command": "lineage.checkActiveFile",
           "group": "lineage@2"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "lineage.azureCheckActiveFile",
+          "group": "lineage@3"
         }
       ]
     }

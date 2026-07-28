@@ -9,11 +9,22 @@ VS Code extension for **Catching the Copy**. It sends Python files to the existi
 | **Lineage: Compare with File…** | Compare the open `.py` file to another file you pick |
 | **Lineage: Check Active File** | Compare the open file to a configured reference (or `original.py` if found) |
 | **Lineage: Compare with Clipboard** | Compare the open file to code copied from ChatGPT / the web |
+| **Lineage: Azure Protected Material Check** | Send the open file to Azure (via Lineage web API). If flagged, offer to insert a citation comment with GitHub source links |
 
-Results appear as:
-- a notification (flagged / clear + recommendation)
-- the **Lineage** output channel (full score report)
-- a status-bar indicator
+### How Azure comments work
+
+```text
+1. You run “Lineage: Azure Protected Material Check”
+2. Extension sends the open file to http://localhost:3000/api/azure-check
+   (or directly to Azure if webAppUrl is empty and azure settings are set)
+3. Azure returns detected + license + GitHub citation URLs
+4. If detected, extension asks: Insert Comment?
+5. Clicking Insert Comment writes a Python header comment with the links
+```
+
+Settings:
+- `lineage.webAppUrl` — default `http://localhost:3000` (recommended)
+- `lineage.azureEndpoint` / `lineage.azureKey` — optional direct Azure fallback
 
 ## Settings
 
