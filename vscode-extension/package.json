@@ -1,0 +1,96 @@
+{
+  "name": "lineage-copy-check",
+  "displayName": "Lineage Copy Check",
+  "description": "AST-based structural similarity warnings for Python files (Catching the Copy).",
+  "version": "0.1.0",
+  "publisher": "surush32",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Surush32/Research-Applications.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Surush32/Research-Applications/issues"
+  },
+  "homepage": "https://github.com/Surush32/Research-Applications/tree/main/vscode-extension",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "python",
+    "plagiarism",
+    "ast",
+    "similarity",
+    "license",
+    "lineage"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "lineage.compareWithFile",
+        "title": "Lineage: Compare with File…"
+      },
+      {
+        "command": "lineage.checkActiveFile",
+        "title": "Lineage: Check Active File"
+      },
+      {
+        "command": "lineage.compareWithClipboard",
+        "title": "Lineage: Compare with Clipboard"
+      }
+    ],
+    "configuration": {
+      "title": "Lineage",
+      "properties": {
+        "lineage.apiUrl": {
+          "type": "string",
+          "default": "https://catching-the-copy-bo.onrender.com",
+          "description": "AST similarity API base URL (Render backend)."
+        },
+        "lineage.threshold": {
+          "type": "number",
+          "default": 0.75,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Similarity threshold used when flagging high matches."
+        },
+        "lineage.referenceFile": {
+          "type": "string",
+          "default": "",
+          "description": "Optional workspace-relative path used by “Check Active File” (e.g. original.py)."
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceLangId == python",
+          "command": "lineage.compareWithFile",
+          "group": "lineage@1"
+        },
+        {
+          "when": "resourceLangId == python",
+          "command": "lineage.checkActiveFile",
+          "group": "lineage@2"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.3.3"
+  }
+}

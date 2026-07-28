@@ -3,6 +3,7 @@ import type {
   CorpusScanResult,
   HealthResponse,
 } from "@/types/api";
+import type { AzureCheckResult } from "@/types/azure";
 
 export async function checkApiHealth(): Promise<HealthResponse> {
   const res = await fetch("/api/health");
@@ -54,4 +55,23 @@ export async function scanAgainstCorpus(input: {
   }
 
   return data as CorpusScanResult;
+}
+
+export async function checkWithAzure(input: {
+  files: { path: string; name: string; content: string }[];
+  repo?: string;
+  branch?: string;
+}): Promise<AzureCheckResult> {
+  const res = await fetch("/api/azure-check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(data?.error ?? `Azure check failed (${res.status})`);
+  }
+
+  return data as AzureCheckResult;
 }

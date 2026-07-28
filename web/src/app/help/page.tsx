@@ -48,10 +48,19 @@ const sections = [
     ],
   },
   {
+    id: "azure-check",
+    title: "Azure protected-material check",
+    body: [
+      "On GitHub import, choose “Azure protected check” to scan up to 20 Python files with Microsoft Azure AI Content Safety.",
+      "Azure looks for matches against a known protected GitHub material index and may return citation URLs and license labels.",
+      "No Azure match does not prove originality. Combine it with AST corpus scans when possible.",
+    ],
+  },
+  {
     id: "download-report",
     title: "Download a report",
     body: [
-      "On comparison or corpus-scan results, use “Download report” for a Markdown summary, or “Download JSON” for the raw scores.",
+      "On comparison, corpus-scan, or Azure results, use “Download report” for a Markdown summary, or “Download JSON” for the raw data.",
       "Share the Markdown file with an instructor or teammate when you need a written record of flagged files.",
       "Reports stay on your device — Lineage does not upload them to a server.",
     ],

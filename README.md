@@ -29,6 +29,7 @@ This project implements an AST-based Python source similarity and licence checke
 - `AST/AST/tests/` — unit tests for the checker
 - `AST/AST/tests/fixtures/` — fixture files used by tests
 - `web/` — Next.js web app with user login, signup, and profile management
+- `vscode-extension/` — VS Code extension for in-editor Python similarity checks
 - `supabase/` — database migrations and setup guide for Supabase
 - `scripts/` — Part E shell scripts for test automation and batch comparisons
 
@@ -71,6 +72,18 @@ cp .env.local.example .env.local   # then add your Supabase keys
 npm install
 npm run dev
 ```
+
+## VS Code extension
+
+The `vscode-extension/` folder adds in-editor commands that call the same AST `/compare` API:
+
+```bash
+cd vscode-extension
+npm install
+npm run compile
+```
+
+Open that folder in VS Code/Cursor and press **F5** to demo. See [vscode-extension/README.md](vscode-extension/README.md).
 
 ## Shell scripts (Part E)
 

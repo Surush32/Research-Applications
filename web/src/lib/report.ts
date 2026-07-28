@@ -1,4 +1,5 @@
 import type { ComparisonResult, CorpusScanResult } from "@/types/api";
+import type { AzureCheckResult } from "@/types/azure";
 
 function pct(value: number) {
   return `${(value * 100).toFixed(1)}%`;
@@ -120,6 +121,59 @@ export function buildCorpusScanReport(results: CorpusScanResult): string {
     "- This report is guidance for review; it is not a legal determination.",
     ""
   );
+
+  return lines.join("\n");
+}
+
+export function buildAzureCheckReport(results: AzureCheckResult): string {
+  const status =
+    results.summary.detectedFiles > 0
+      ? "FLAGGED — protected material may be present"
+      : "CLEAR — no protected-material matches in Azure index";
+
+  const lines = [
+    "# Lineage Azure protected-material report",
+    "",
+    `Generated: ${stamp()}`,
+    `Provider: ${results.provider}`,
+    `Status: ${status}`,
+    results.repo ? `Repository: ${results.repo}` : null,
+    results.branch ? `Branch: ${results.branch}` : null,
+    `Analysis time: ${results.executionMs}ms`,
+    "",
+    "## Summary",
+    `- Scanned files: ${results.summary.scannedFiles}`,
+    `- Detected: ${results.summary.detectedFiles}`,
+    `- Clear: ${results.summary.clearFiles}`,
+    `- Skipped: ${results.summary.skippedFiles}`,
+    `- Errors: ${results.summary.errorFiles}`,
+    "",
+    "## Per-file results",
+  ].filter((line): line is string => line != null);
+
+  for (const file of results.files) {
+    lines.push("", `### ${file.name} (${file.status})`);
+    lines.push(`Path: \`${file.path}\``);
+    lines.push(`Recommendation: ${file.recommendation}`);
+    if (file.message) {
+      lines.push(`Note: ${file.message}`);
+    }
+    if (file.citations.length > 0) {
+      lines.push("", "Citations:");
+      for (const citation of file.citations) {
+        lines.push(`- License: ${citation.license}`);
+        for (const url of citation.sourceUrls.slice(0, 8)) {
+          lines.push(`  - ${url}`);
+        }
+      }
+    }
+  }
+
+  lines.push("", "## Notes");
+  for (const note of results.notes) {
+    lines.push(`- ${note}`);
+  }
+  lines.push("");
 
   return lines.join("\n");
 }

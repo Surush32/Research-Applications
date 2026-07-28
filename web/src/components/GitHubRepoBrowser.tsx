@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { scanAgainstCorpus } from "@/lib/api";
+import { checkWithAzure, scanAgainstCorpus } from "@/lib/api";
 import type {
   GitHubImportedFile,
   GitHubRepo,
   GitHubTreeEntry,
 } from "@/types/github";
 
-type ScanMode = "corpus" | "pairwise";
+type ScanMode = "corpus" | "azure" | "pairwise";
 
 type ResolveResponse =
   | { type: "user"; username: string; repos: GitHubRepo[] }
@@ -67,6 +67,39 @@ export function GitHubRepoBrowser() {
     setMode(nextMode);
     const nextMax = nextMode === "pairwise" ? 2 : MAX_CORPUS_FILES;
     setSelectedPaths((current) => current.slice(0, nextMax));
+  }
+
+  async function runAzureCheck() {
+    if (!selectedRepo || selectedPaths.length < 1) {
+      setError("Pick at least one Python file to check with Azure.");
+      return;
+    }
+
+    setWorking(true);
+    setError(null);
+
+    try {
+      const orderedFiles = await fetchSelectedFiles();
+      const result = await checkWithAzure({
+        files: orderedFiles.map((file) => ({
+          path: file.path,
+          name: file.name,
+          content: file.content,
+        })),
+        repo: selectedRepo.full_name,
+        branch: selectedRepo.default_branch,
+      });
+
+      sessionStorage.setItem("lineage-azure-results", JSON.stringify(result));
+      router.push("/check/azure-results");
+      router.refresh();
+    } catch (azureError) {
+      setError(
+        azureError instanceof Error ? azureError.message : "Azure check failed."
+      );
+    } finally {
+      setWorking(false);
+    }
   }
 
   function saveToken(next: string) {
@@ -331,6 +364,20 @@ export function GitHubRepoBrowser() {
             </button>
             <button
               type="button"
+              onClick={() => switchMode("azure")}
+              className={`rounded-lg border px-3 py-2 text-left text-sm ${
+                mode === "azure"
+                  ? "border-accent bg-[#fff4f0]"
+                  : "border-border"
+              }`}
+            >
+              <span className="font-medium">Azure protected check</span>
+              <span className="mt-1 block text-xs text-muted">
+                Check up to 20 files with Microsoft Azure Content Safety
+              </span>
+            </button>
+            <button
+              type="button"
               onClick={() => switchMode("pairwise")}
               className={`rounded-lg border px-3 py-2 text-left text-sm ${
                 mode === "pairwise"
@@ -462,7 +509,7 @@ export function GitHubRepoBrowser() {
               ))
             )}
           </ul>
-          {mode === "corpus" && files.length > 0 && (
+          {(mode === "corpus" || mode === "azure") && files.length > 0 && (
             <button
               type="button"
               onClick={() =>
@@ -477,22 +524,32 @@ export function GitHubRepoBrowser() {
           )}
           <button
             type="button"
-            onClick={mode === "corpus" ? runCorpusScan : importForPairwise}
+            onClick={
+              mode === "corpus"
+                ? runCorpusScan
+                : mode === "azure"
+                  ? runAzureCheck
+                  : importForPairwise
+            }
             disabled={
               working ||
-              (mode === "corpus"
-                ? selectedPaths.length < 1
-                : selectedPaths.length !== 2)
+              (mode === "pairwise"
+                ? selectedPaths.length !== 2
+                : selectedPaths.length < 1)
             }
             className="lineage-btn-dark mt-4 w-full py-2 text-sm disabled:opacity-50"
           >
             {working
               ? mode === "corpus"
                 ? "Scanning corpus…"
-                : "Importing…"
+                : mode === "azure"
+                  ? "Checking with Azure…"
+                  : "Importing…"
               : mode === "corpus"
                 ? "Scan against corpus"
-                : "Use selected files"}
+                : mode === "azure"
+                  ? "Check with Azure"
+                  : "Use selected files"}
           </button>
         </div>
       </aside>
