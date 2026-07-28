@@ -7,3 +7,4 @@ tsconfig.json
 **/*.ts
 node_modules/**
 *.vsix
+icon.jpg

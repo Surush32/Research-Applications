@@ -2,8 +2,9 @@
   "name": "lineage-copy-check",
   "displayName": "Lineage Copy Check",
   "description": "AST-based structural similarity warnings for Python files (Catching the Copy).",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "surush32",
+  "icon": "icon.png",
   "license": "MIT",
   "repository": {
     "type": "git",
