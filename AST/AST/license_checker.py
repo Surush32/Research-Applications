@@ -5,6 +5,7 @@ OOP design:
   - AstAnalyzer: encapsulates AST feature extraction
   - SimilarityMetric (ABC): polymorphic similarity strategies
   - SimilarityEngine: aggregates weighted metric scores
+    (ThreadPoolExecutor + lock for concurrent metric compute)
   - ReportRenderer: encapsulates terminal report output
   - LicenseChecker: facade that orchestrates the full workflow
 """
@@ -15,7 +16,9 @@ import ast
 import sys
 import argparse
 import hashlib
+import threading
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from collections import Counter
@@ -235,23 +238,42 @@ WEIGHTS = {metric.name: metric.weight for metric in DEFAULT_METRICS}
 
 
 class SimilarityEngine:
-    """Runs polymorphic metrics and produces a weighted aggregate score."""
+    """Runs polymorphic metrics and produces a weighted aggregate score.
+
+    Metric computations run concurrently on a ThreadPoolExecutor. A lock
+    protects writes into the shared scores dictionary so results stay
+    thread-safe when multiple workers finish out of order.
+    """
 
     def __init__(
         self,
         metrics: tuple[SimilarityMetric, ...] | None = None,
         analyzer: AstAnalyzer | None = None,
+        max_workers: int | None = None,
     ):
         self._metrics = metrics or DEFAULT_METRICS
         self._analyzer = analyzer or AstAnalyzer()
+        # Cap workers to the number of metrics (usually 4).
+        self._max_workers = max_workers or max(1, len(self._metrics))
+        self._scores_lock = threading.Lock()
 
     def compare(self, tree_a: ast.Module, tree_b: ast.Module) -> dict[str, float]:
         features_a = AnalysisFeatures.from_tree(tree_a, self._analyzer)
         features_b = AnalysisFeatures.from_tree(tree_b, self._analyzer)
 
         scores: dict[str, float] = {}
-        for metric in self._metrics:
-            scores[metric.name] = metric.compute(features_a, features_b)
+
+        def _run_metric(metric: SimilarityMetric) -> tuple[str, float]:
+            return metric.name, metric.compute(features_a, features_b)
+
+        with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
+            futures = [
+                executor.submit(_run_metric, metric) for metric in self._metrics
+            ]
+            for future in as_completed(futures):
+                name, value = future.result()
+                with self._scores_lock:
+                    scores[name] = value
 
         scores["aggregate"] = sum(
             scores[metric.name] * metric.weight for metric in self._metrics

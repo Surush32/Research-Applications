@@ -171,6 +171,21 @@ class TestOopDesign(unittest.TestCase):
             self.assertGreaterEqual(score, 0.0)
             self.assertLessEqual(score, 1.0)
 
+    def test_similarity_engine_uses_thread_pool_safely(self):
+        # Multithreaded metric scoring should return all metric keys + aggregate.
+        tree_a = parse_file(PROJECT_ROOT / "original.py")
+        tree_b = parse_file(PROJECT_ROOT / "suspect.py")
+        engine = lc.SimilarityEngine(max_workers=4)
+        scores = engine.compare(tree_a, tree_b)
+
+        for metric in lc.DEFAULT_METRICS:
+            self.assertIn(metric.name, scores)
+            self.assertGreaterEqual(scores[metric.name], 0.0)
+            self.assertLessEqual(scores[metric.name], 1.0)
+        self.assertIn("aggregate", scores)
+        self.assertGreaterEqual(scores["aggregate"], 0.0)
+        self.assertLessEqual(scores["aggregate"], 1.0)
+
     def test_license_checker_facade_runs_comparison(self):
         # LicenseChecker facade should run end-to-end and flag the renamed copy.
         checker = lc.LicenseChecker(threshold=0.75)
